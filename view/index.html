@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pastebin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f4f4f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .wrap { width: 100%; max-width: 640px; }
+
+    .header { margin-bottom: 1.75rem; }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #111;
+    }
+    .header p { font-size: 14px; color: #777; margin-top: 5px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e2e2dd;
+      border-radius: 14px;
+      padding: 1.5rem;
+    }
+
+    .field { margin-bottom: 1.1rem; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #111;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: #888;
+    }
+    .field textarea {
+      resize: vertical;
+      min-height: 180px;
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn {
+      width: 100%;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #111;
+      color: #fff;
+      transition: background 0.15s, opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 0.5rem;
+    }
+    .btn:hover { background: #333; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result {
+      margin-top: 1.25rem;
+      padding: 1rem 1.25rem;
+      background: #f8f8f5;
+      border-radius: 8px;
+      border: 1px solid #e2e2dd;
+      display: none;
+    }
+    .result-label {
+      font-size: 11px;
+      color: #999;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .result-row { display: flex; align-items: center; gap: 8px; }
+    .result-link {
+      font-size: 14px;
+      color: #2563eb;
+      text-decoration: none;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .result-link:hover { text-decoration: underline; }
+
+    .copy-btn {
+      border: 1px solid #ddd;
+      background: #fff;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: #555;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover { background: #f4f4f0; color: #111; }
+
+    .error {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #fff1f0;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #b91c1c;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <h1>
+      <i class="ti ti-clipboard-text" style="font-size:22px;"></i>
+      Pastebin
+    </h1>
+    <p>Create and share snippets, notes, or code instantly.</p>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label>Title</label>
+      <input id="title" type="text" placeholder="e.g. My config snippet" />
+    </div>
+
+    <div class="field">
+      <label>Content</label>
+      <textarea id="content" placeholder="Paste your text or code here…"></textarea>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Expires in</label>
+        <select id="expiresIn">
+          <option value="">Never</option>
+          <option value="10m">10 minutes</option>
+          <option value="1h">1 hour</option>
+          <option value="1d">1 day</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Syntax</label>
+        <select id="syntax">
+          <option value="plain">Plain text</option>
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="bash">Bash</option>
+          <option value="json">JSON</option>
+          <option value="html">HTML</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn" id="submitBtn" onclick="createPaste()">
+      <div class="spinner" id="spinner"></div>
+      <i class="ti ti-send" id="sendIcon"></i>
+      <span id="btnText">Create paste</span>
+    </button>
+
+    <div class="error" id="errorBox"></div>
+
+    <div class="result" id="resultBox">
+      <div class="result-label">Paste URL</div>
+      <div class="result-row">
+        <a class="result-link" id="resultLink" href="#" target="_blank"></a>
+        <button class="copy-btn" id="copyBtn" onclick="copyUrl()">
+          <i class="ti ti-copy"></i> Copy
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const APP_URL = "http://localhost:8000"; // ← change this one place only
+
+  async function createPaste() {
+    const title     = document.getElementById("title").value.trim();
+    const content   = document.getElementById("content").value.trim();
+    const expiresIn = document.getElementById("expiresIn").value;
+    const syntax    = document.getElementById("syntax").value;
+
+    const errorBox  = document.getElementById("errorBox");
+    const resultBox = document.getElementById("resultBox");
+    errorBox.style.display  = "none";
+    resultBox.style.display = "none";
+
+    if (!content) {
+      errorBox.textContent    = "Content cannot be empty.";
+      errorBox.style.display  = "block";
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${APP_URL}/paste`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content, expiresIn, syntax })
+      });
+
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+      const data    = await res.json();
+      const fullUrl = `${APP_URL}${data.url}`;
+
+      const link  = document.getElementById("resultLink");
+      link.href   = fullUrl;
+      link.textContent = fullUrl;
+      resultBox.style.display = "block";
+
+      document.getElementById("title").value   = "";
+      document.getElementById("content").value = "";
+
+    } catch (err) {
+      errorBox.textContent   = "Failed to create paste. Make sure the server is running.";
+      errorBox.style.display = "block";
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function setLoading(on) {
+    document.getElementById("spinner").style.display  = on ? "block" : "none";
+    document.getElementById("sendIcon").style.display = on ? "none"  : "inline";
+    document.getElementById("btnText").textContent    = on ? "Creating…" : "Create paste";
+    document.getElementById("submitBtn").disabled     = on;
+  }
+
+  function copyUrl() {
+    const url = document.getElementById("resultLink").href;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById("copyBtn");
+      btn.innerHTML = '<i class="ti ti-check"></i> Copied';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="ti ti-copy"></i> Copy';
+      }, 2000);
+    });
+  }
+</script>
+
+</body>
+</html>
